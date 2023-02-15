@@ -19,6 +19,34 @@ resource "aws_security_group" "grp1-eks-sg" {
 
 }
 
+resource "aws_security_group" "grp1-worker-sg" {
+  vpc_id = data.aws_vpc.default_vpc.id
+
+  ingress {
+    description = "Created from terraform"
+    from_port   = 30000
+    to_port     = 30000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Created from terraform"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
 resource "aws_eks_cluster" "grp1-eks-cluster" {
   name     = "grp1-eks-cluster"
   role_arn = aws_iam_role.grp1-eks-role.arn
@@ -42,6 +70,12 @@ resource "aws_eks_node_group" "grp1-eks-node-group" {
   instance_types = [var.instance_type_t3]
   ami_type = var.ami_type
   disk_size = "20"
+  remote_access {
+    ec2_ssh_key = "grp1-key"
+  }
+  tags = {
+    Name = "grp1-eks-node"
+  }
   scaling_config {
     desired_size = 2
     max_size     = 3
